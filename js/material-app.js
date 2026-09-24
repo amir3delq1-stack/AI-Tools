@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const rawInput = aimCodeInput.value.trim();
 
     if (!rawInput) {
-      showFeedback('يرجى إدخال كود الحجز الشخصي الخاص بك (#AIM-XXXXXXXX).', 'error');
+      showFeedback('يرجى إدخال كود الحجز الشخصي الخاص بك (الكود الفردي الصادر بعد تسجيل الاستمارة).', 'error');
       return;
     }
 

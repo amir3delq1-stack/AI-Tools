@@ -62,20 +62,28 @@
       <!-- AIM Input Form -->
       <div class="aim-input-group">
         <label class="aim-input-label" for="aimCodeInput">
-          كود الحجز المعتمد الخاص بك:
-          <span style="font-size: 0.76rem; color: var(--neon-cyan);">(مثال: #AIM-MUFF2V23)</span>
+          <i class="fa-solid fa-key" style="color: var(--neon-cyan); margin-left: 6px;"></i>
+          <span>كود الحجز الشخصي المعتمد الخاص بك:</span>
         </label>
         <div class="aim-input-wrapper">
-          <i class="fa-solid fa-key prefix-icon"></i>
+          <i class="fa-solid fa-ticket prefix-icon"></i>
           <input 
             type="text" 
             id="aimCodeInput" 
             class="aim-code-input" 
-            placeholder="#AIM-XXXXXXXX" 
-            maxlength="25"
+            placeholder="أدخل كود حجزك الخاص (مثال: #AIM-MUFF2V23)" 
+            maxlength="45"
             autocomplete="off"
             spellcheck="false"
           >
+        </div>
+
+        <!-- Clarification that example is purely illustrative -->
+        <div class="aim-code-example-clarification">
+          <i class="fa-solid fa-circle-info"></i>
+          <div>
+            <strong>تنبيه توضيحي:</strong> الكود <code>#AIM-MUFF2V23</code> هو <u>مجرد مثال</u> لشكل وصيغة كود الحجز. يجب على كل متدرب إدخال كود الحجز الفردي الخاص به الذي استلمه بعد تسجيل الاستمارة لحضور السيشن.
+          </div>
         </div>
       </div>
 
@@ -326,8 +334,14 @@
         </div>
       </div>
 
-      <!-- Printable Certificate Card -->
+      <!-- Printable Certificate Card (Traditional Portrait Diploma Proportions) -->
       <div class="official-certificate" id="printableCertificate">
+        <!-- Traditional Diploma Corner Ornaments -->
+        <div class="cert-corner corner-tl"></div>
+        <div class="cert-corner corner-tr"></div>
+        <div class="cert-corner corner-bl"></div>
+        <div class="cert-corner corner-br"></div>
+
         <div class="cert-watermark">AI MASTERY</div>
 
         <!-- Dual Logo Header -->
@@ -348,13 +362,13 @@
         <div class="cert-student-name" id="certStudentName">أحمد محمد</div>
 
         <p class="cert-description">
-          قد اجتاز بنجاح واقتدار كافة محاور وتطبيقات <strong>دورة أساسيات وتطبيقات الذكاء الاصطناعي (AI Mastery Course)</strong>، واستوفى بنجاح متطلبات دراسة وتطبيق مفاهيم الذكاء الاصطناعي، وتعلم الآلة (Machine Learning)، والتعلم العميق (Deep Learning)، والذكاء الاصطناعي التوليدي (Generative AI & LLMs)، وهندسة الأوامر (Prompt Engineering)، وتقنيات الـ RAG وقواعد البيانات الموجهة (Vector DBs)، وبناء وكلاء الذكاء الاصطناعي (AI Agents)، وأتمتة الأعمال وسير العمل لسوق العمل.
+          قد اجتاز بنجاح واقتدار كافة محاور وتطبيقات <strong>دورة أساسيات وتطبيقات الذكاء الاصطناعي (AI Mastery Course)</strong>، واستوفى متطلبات مفاهيم الـ AI وتعلم الآلة (Machine Learning) والتعلم العميق (Deep Learning) والذكاء الاصطناعي التوليدي (Generative AI) وهندسة الأوامر (Prompt Engineering) وتقنيات الـ RAG وقواعد البيانات الموجهة (Vector DBs) وبناء وكلاء الذكاء الاصطناعي (AI Agents) لسوق العمل.
         </p>
 
         <div class="cert-details-grid">
           <div class="cert-detail-item">
             <span class="lbl">كود الحجز المعتمد:</span>
-            <strong id="certCode" style="color: var(--neon-cyan);">AIM-MUFF2V23</strong>
+            <strong id="certCode" style="color: var(--neon-cyan);">AIM-XXXX</strong>
           </div>
           <div class="cert-detail-item">
             <span class="lbl">تاريخ الاعتماد والإصدار:</span>
@@ -370,16 +384,16 @@
           <div class="cert-signature-col">
             <div class="cert-signature-name">Amir Adel Eid</div>
             <div class="cert-signature-role">AI Engineer & Creative Technologist</div>
-            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">مدرب الدورة ومؤسس AI Nexus Elite</div>
+            <div class="cert-signature-sub">مدرب الدورة ومؤسس AI Nexus Elite</div>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 14px;">
-            <div class="cert-seal-badge" style="width: 80px; height: 80px; border-color: var(--neon-cyan); background: rgba(0, 229, 255, 0.05); color: var(--neon-cyan);">
-              <i class="fa-solid fa-award" style="font-size: 1.5rem; margin-bottom: 2px;"></i>
-              <span style="font-size: 0.65rem;">VERIFIED</span>
-              <span style="font-size: 0.55rem; color: #fff;">COURSE PASS</span>
+          <div class="cert-seals-col">
+            <div class="cert-seal-badge">
+              <i class="fa-solid fa-award"></i>
+              <span class="seal-txt-main">VERIFIED</span>
+              <span class="seal-txt-sub">COURSE PASS</span>
             </div>
-            <img src="assets/ae_seal.jpg" alt="Official AE Seal" style="width: 65px; height: 65px; border-radius: 50%; border: 2px solid var(--neon-cyan);">
+            <img src="assets/ae_seal.jpg" alt="Official AE Seal" class="cert-seal-img" title="خاتم الاعتماد الرسمي - م. أمير عادل">
           </div>
         </div>
       </div>

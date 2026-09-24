@@ -249,7 +249,7 @@ const AIMAuth = (() => {
   // ===================================================
   function validateAndBindCode(inputRaw, optionalStudentName = '') {
     if (!inputRaw || typeof inputRaw !== 'string') {
-      return { success: false, errorType: 'EMPTY', message: 'يرجى إدخال كود الحجز الشخصي الخاص بك (#AIM-XXXXXXXX).' };
+      return { success: false, errorType: 'EMPTY', message: 'يرجى إدخال كود الحجز الشخصي الخاص بك (الكود الفردي الذي وصلك بعد تسجيل الاستمارة).' };
     }
 
     // تنظيف الكود أو استخراجه من الرسالة
@@ -260,7 +260,7 @@ const AIMAuth = (() => {
       return {
         success: false,
         errorType: 'INVALID_FORMAT',
-        message: 'صيغة كود الحجز غير صحيحة! يجب إدخال كود الحجز الخاص بك المبدوء بـ AIM (مثال: #AIM-MUFF2V23) الصادر لحضور السيشن.'
+        message: 'صيغة كود الحجز غير صحيحة! يجب إدخال كود الحجز الخاص بك المبدوء بـ AIM (الكود #AIM-MUFF2V23 هو مجرد مثال توضيحي، أدخل كودك الشخصي الذي وصلك بعد التسجيل).'
       };
     }
 
