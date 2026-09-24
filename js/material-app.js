@@ -73,11 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
     activeSession = AIMAuth.getActiveSession();
     if (!activeSession) {
       lockOverlay.classList.remove('hidden');
+      lockOverlay.style.display = 'flex';
       document.body.style.overflow = 'hidden';
-      if (aimCodeInput) aimCodeInput.focus();
+      document.documentElement.style.overflow = 'hidden';
+      if (aimCodeInput) setTimeout(() => aimCodeInput.focus(), 300);
     } else {
       lockOverlay.classList.add('hidden');
+      lockOverlay.style.display = 'none';
       document.body.style.overflow = 'auto';
+      document.documentElement.style.overflow = 'auto';
 
       if (navActiveCode) navActiveCode.textContent = activeSession.code;
       if (navActiveStudent) navActiveStudent.textContent = activeSession.studentName || 'طالب معتمد';
@@ -126,10 +130,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const result = AIMAuth.validateAndBindCode(rawInput, autoDetectedStudentName);
 
     if (result.success) {
-      showSuccessWithHR(result.message, result.hrWhatsAppUrl);
+      // إشارة نجاح مباشرة وسريعة على الزر وفتح المادة فوراً
+      btnVerifyCode.disabled = true;
+      btnVerifyCode.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>تم التحقق بنجاح! جاري فتح المادة...</span>';
+      btnVerifyCode.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+      btnVerifyCode.style.color = '#fff';
+
+      showFeedback('🎉 تم التحقق بنجاح! تم تسجيل كود الحجز وتأمينه على جهازك. جاري نقلك للمادة...', 'success');
+
       setTimeout(() => {
+        lockOverlay.classList.add('hidden');
+        lockOverlay.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        document.documentElement.style.overflow = 'auto';
         checkAuthStatus();
-      }, 2000);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 350);
     } else {
       if (result.errorType === 'CODE_BLOCKED') {
         showFeedback(result.message, 'pending', result.whatsappUrl);
@@ -695,6 +711,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     certModal.classList.remove('hidden');
+  }
+
+  // تسجيل الخروج
+  if (btnNavLogout) {
+    btnNavLogout.addEventListener('click', () => {
+      if (confirm('هل ترغب بالتأكيد في تسجيل الخروج من المادة؟')) {
+        AIMAuth.logout();
+        checkAuthStatus();
+      }
+    });
   }
 
   // ===================================================
