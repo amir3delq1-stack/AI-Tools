@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnVerifyCode.addEventListener('click', handleVerification);
   }
 
-  function handleVerification() {
+  async function handleVerification() {
     const rawInput = aimCodeInput.value.trim();
 
     if (!rawInput) {
@@ -139,31 +139,52 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const result = AIMAuth.validateAndBindCode(rawInput, autoDetectedStudentName);
+    const originalBtnHtml = btnVerifyCode.innerHTML;
+    btnVerifyCode.disabled = true;
+    btnVerifyCode.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>جاري فحص وتأمين قفل الجهاز...</span>';
 
-    if (result.success) {
-      // إشارة نجاح مباشرة وسريعة على الزر وفتح المادة فوراً
-      btnVerifyCode.disabled = true;
-      btnVerifyCode.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>تم التحقق بنجاح! جاري فتح المادة...</span>';
-      btnVerifyCode.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-      btnVerifyCode.style.color = '#fff';
+    try {
+      const result = await AIMAuth.validateAndBindCode(rawInput, autoDetectedStudentName);
 
-      showFeedback('🎉 تم التحقق بنجاح! تم تسجيل كود الحجز وتأمينه على جهازك. جاري نقلك للمادة...', 'success');
+      if (result.success) {
+        btnVerifyCode.innerHTML = '<i class="fa-solid fa-circle-check"></i> <span>تم التحقق وتأمين الجهاز! جاري فتح المادة...</span>';
+        btnVerifyCode.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+        btnVerifyCode.style.color = '#fff';
 
-      setTimeout(() => {
-        lockOverlay.classList.add('hidden');
-        lockOverlay.style.display = 'none';
-        document.body.style.overflow = 'auto';
-        document.documentElement.style.overflow = 'auto';
-        checkAuthStatus();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 350);
-    } else {
-      if (result.errorType === 'CODE_BLOCKED') {
-        showFeedback(result.message, 'pending', result.whatsappUrl);
+        showFeedback('🎉 تم التحقق بنجاح! تم تسجيل كود الحجز وتأمينه على جهازك. جاري نقلك للمادة...', 'success');
+
+        setTimeout(() => {
+          lockOverlay.classList.add('hidden');
+          lockOverlay.style.display = 'none';
+          document.body.style.overflow = 'auto';
+          document.documentElement.style.overflow = 'auto';
+          checkAuthStatus();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 350);
       } else {
-        showFeedback(result.message, 'error');
+        btnVerifyCode.disabled = false;
+        btnVerifyCode.innerHTML = originalBtnHtml;
+        btnVerifyCode.style.background = '';
+        btnVerifyCode.style.color = '';
+
+        if (aimCodeInput) {
+          aimCodeInput.style.borderColor = '#ef4444';
+          aimCodeInput.focus();
+        }
+
+        if (result.errorType === 'LOCKED_TO_OTHER_DEVICE') {
+          showFeedback(result.message, 'error', result.whatsappUrl, 'تواصل مباشرة مع أ. رنا (مسؤولة الـ HR) لفك القفل');
+        } else if (result.errorType === 'CODE_BLOCKED') {
+          showFeedback(result.message, 'pending', result.whatsappUrl, 'تواصل مباشرة مع أ. رنا (مسؤولة الـ HR) لتأكيد التفعيل');
+        } else {
+          showFeedback(result.message, 'error');
+        }
       }
+    } catch (err) {
+      console.error('Error during verification:', err);
+      btnVerifyCode.disabled = false;
+      btnVerifyCode.innerHTML = originalBtnHtml;
+      showFeedback('حدث خطأ أثناء فحص الكود، يرجى المحاولة مرة أخرى.', 'error');
     }
   }
 
@@ -188,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
     aimFeedbackBox.style.display = 'block';
   }
 
-  function showFeedback(msg, type, extraActionUrl = null) {
+  function showFeedback(msg, type, extraActionUrl = null, btnLabel = null) {
     aimFeedbackBox.innerHTML = '';
     const p = document.createElement('div');
     p.style.whiteSpace = 'pre-line';
@@ -201,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.target = '_blank';
       btn.rel = 'noopener noreferrer';
       btn.className = 'aim-btn-wa-activate';
-      btn.innerHTML = '<i class="fa-brands fa-whatsapp"></i> <span>إرسال رسالة تفعيل الكود للمهندس أمير عادل (واتساب)</span>';
+      btn.innerHTML = `<i class="fa-brands fa-whatsapp fa-lg"></i> <span>${btnLabel || 'تواصل مباشرة مع أ. رنا (مسؤولة الـ HR) عبر واتساب'}</span>`;
       aimFeedbackBox.appendChild(btn);
     }
 
@@ -812,9 +833,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // فك قفل الجهاز
       const btnUnbind = tr.querySelector('.btn-unbind-code');
       if (btnUnbind) {
-        btnUnbind.addEventListener('click', () => {
+        btnUnbind.addEventListener('click', async () => {
           if (confirm(`هل أنت متأكد من فك قفل الكود ${item.code}؟`)) {
-            AIMAuth.adminUnbindCode(item.code);
+            btnUnbind.disabled = true;
+            btnUnbind.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري فك القفل...';
+            await AIMAuth.adminUnbindCode(item.code);
             renderAdminTable();
           }
         });
@@ -823,9 +846,10 @@ document.addEventListener('DOMContentLoaded', () => {
       // حذف الكود
       const btnDel = tr.querySelector('.btn-del-code');
       if (btnDel) {
-        btnDel.addEventListener('click', () => {
+        btnDel.addEventListener('click', async () => {
           if (confirm(`هل أنت متأكد من حذف الكود ${item.code}؟`)) {
-            AIMAuth.adminDeleteCode(item.code);
+            btnDel.disabled = true;
+            await AIMAuth.adminDeleteCode(item.code);
             renderAdminTable();
           }
         });

@@ -22,27 +22,36 @@ const AIMAuth = (() => {
   };
 
   const ADMIN_PASSCODE = 'AMIR2026';
-  const ORGANIZER_WHATSAPP = '201098021457';
-  // رقم أستاذة رنا مسؤولة الـ HR (بدون إظهار الرقم مباشرة في الواجهة للحفاظ على الخصوصية)
+  // رقم أستاذة رنا مسؤولة الـ HR (الرقم الأساسي المعتمد لجميع التحويلات والتواصل)
   const HR_WHATSAPP = '20101266128';
+  const ORGANIZER_WHATSAPP = HR_WHATSAPP;
   const OFFICIAL_FORM_URL = 'https://amir3delq1-stack.github.io/Forum-Ai-Mastrey/';
+  // السجل السحابي العالمي المباشر لضمان قفل الكود ومنع استخدامه من أي جهاز آخر في العالم
+  const MASTER_REGISTRY_URL = 'https://api.restful-api.dev/objects/ff808181a09d98f701a0d38db69b07ec';
 
-  // الأكواد المعتمدة الحقيقية فقط (الخاصة بالطلاب المسجلين بالاستمارة)
-  const DEFAULT_INITIAL_CODES = [
-    { 
-      code: 'AIM-MUFF2V23', 
-      studentName: 'Ahmed', 
-      phone: '01098021457', 
-      university: 'القاهره', 
-      goal: 'عشان تعرف تستخدم الذكاء الاصطناعي في مجالك',
-      status: 'active', // مفعل ومؤكد
-      boundDeviceId: null, 
-      boundDeviceName: null, 
-      boundAt: null, 
-      createdAt: '2026-09-24T13:56:00Z',
-      notes: 'كود الاستمارة الرسمي (الطالب Ahmed)' 
-    }
+  // قائمة الأكواد المبدئية المعتمدة (فارغة لضمان عدم وجود أي كود تجريبي متاح للدخول العام)
+  const DEFAULT_INITIAL_CODES = [];
+
+  // قائمة الأكواد التوضيحية والتجريبية المحظورة تماماً (للمثال فقط ولا يمكن لأحد التسجيل أو الدخول بها)
+  const FORBIDDEN_EXAMPLE_CODES = [
+    'AIM-MUFF2V23',
+    'AIM-AMUFF2V23',
+    'IM-AMUFF2V23',
+    'AIM-XXXXXXXX',
+    'AIM-EXAMPLE',
+    'AIM-TEST',
+    'AIM-DEMO'
   ];
+
+  // دالة فحص ما إذا كان الكود هو كود مثال توضيحي محظور
+  function isForbiddenExampleCode(code) {
+    if (!code) return false;
+    const str = String(code).toUpperCase().replace(/^[#\s]+/, '').trim();
+    if (FORBIDDEN_EXAMPLE_CODES.includes(str)) return true;
+    if (str.includes('MUFF2V23')) return true;
+    if (str.includes('XXXXXXXX')) return true;
+    return false;
+  }
 
   // توليد بصمة الجهاز الفريدة
   function generateHardwareFingerprint() {
@@ -133,7 +142,15 @@ const AIMAuth = (() => {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.CODES_DB);
       if (data) {
-        return JSON.parse(data);
+        let codes = JSON.parse(data);
+        if (Array.isArray(codes)) {
+          // تطهير وحذف أي كود تجريبي توضيحي محظور مثل AIM-MUFF2V23
+          const filtered = codes.filter(c => !isForbiddenExampleCode(c.code));
+          if (filtered.length !== codes.length) {
+            saveCodesDB(filtered);
+          }
+          return filtered;
+        }
       }
     } catch (e) {
       console.error('Error reading AIM codes DB:', e);
@@ -224,6 +241,12 @@ const AIMAuth = (() => {
       if (!sessionStr) return null;
       const session = JSON.parse(sessionStr);
 
+      // إذا كان الكود المسجل في الجلسة هو كود المثال، يتم طرده وقفل الشاشة فوراً
+      if (isForbiddenExampleCode(session.code)) {
+        logout();
+        return null;
+      }
+
       const db = getCodesDB();
       const record = db.find(c => c.code === session.code);
       const currentDeviceId = getDeviceId();
@@ -245,15 +268,106 @@ const AIMAuth = (() => {
   }
 
   // ===================================================
-  // التحقق من كود AIM وقفل الجهاز وحالة التفعيل
+  // السجل السحابي العالمي لقفل الأجهزة (Cross-Device Cloud Shield)
   // ===================================================
-  function validateAndBindCode(inputRaw, optionalStudentName = '') {
+
+  // جلب سجل الأقفال السحابية لجميع الأجهزة عالمياً
+  async function fetchCloudLocks() {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const res = await fetch(MASTER_REGISTRY_URL, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const json = await res.json();
+        return (json && json.data && json.data.locks) ? json.data.locks : {};
+      }
+    } catch (e) {
+      console.warn('تعذر جلب سجل القفل السحابي المباشر، جاري الاعتماد على السجل المحلي:', e);
+    }
+    return null;
+  }
+
+  // تسجيل وحفظ قفل الكود على هذا الجهاز في السحابة فوراً لمنع أي جهاز آخر في العالم
+  async function commitCloudLock(code, lockPayload) {
+    try {
+      const currentLocks = (await fetchCloudLocks()) || {};
+      currentLocks[code] = lockPayload;
+
+      const payload = {
+        name: "AIM_GLOBAL_DEVICE_REGISTRY_2026",
+        data: {
+          version: "1.0",
+          updatedAt: new Date().toISOString(),
+          locks: currentLocks
+        }
+      };
+
+      await fetch(MASTER_REGISTRY_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch (e) {
+      console.warn('فشل تحديث القفل السحابي:', e);
+    }
+  }
+
+  // مسح قفل الكود من السحابة في حال فك القفل من الإدارة
+  async function removeCloudLock(code) {
+    try {
+      const currentLocks = (await fetchCloudLocks()) || {};
+      if (currentLocks[code]) {
+        delete currentLocks[code];
+        const payload = {
+          name: "AIM_GLOBAL_DEVICE_REGISTRY_2026",
+          data: {
+            version: "1.0",
+            updatedAt: new Date().toISOString(),
+            locks: currentLocks
+          }
+        };
+        await fetch(MASTER_REGISTRY_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+    } catch (e) {
+      console.warn('فشل مسح القفل السحابي:', e);
+    }
+  }
+
+  // ===================================================
+  // التحقق من كود AIM وقفل الجهاز المشدد وحالة التفعيل
+  // ===================================================
+  async function validateAndBindCode(inputRaw, optionalStudentName = '') {
     if (!inputRaw || typeof inputRaw !== 'string') {
       return { success: false, errorType: 'EMPTY', message: 'يرجى إدخال كود الحجز الشخصي الخاص بك (الكود الفردي الذي وصلك بعد تسجيل الاستمارة).' };
     }
 
+    // فحص حظر كود المثال التوضيحي قبل أي معالجة (حتى يفشل من يحاول الدخول به فوراً)
+    if (isForbiddenExampleCode(inputRaw)) {
+      return {
+        success: false,
+        errorType: 'EXAMPLE_CODE_FORBIDDEN',
+        code: 'AIM-MUFF2V23',
+        message: '⛔ تنبيه أمني: الكود (#AIM-MUFF2V23) هو مجرد مثال توضيحي ومحظور استخدامه للدخول أو التسجيل!\n\nيجب عليك إدخال كود الحجز الفردي الخاص بك الذي استلمته بعد التسجيل في الاستمارة لحضور السيشن.'
+      };
+    }
+
     // تنظيف الكود أو استخراجه من الرسالة
     let cleanCode = normalizeCode(inputRaw);
+
+    // فحص حظر الكود بعد التنظيف أيضاً
+    if (isForbiddenExampleCode(cleanCode)) {
+      return {
+        success: false,
+        errorType: 'EXAMPLE_CODE_FORBIDDEN',
+        code: cleanCode,
+        message: `⛔ تنبيه أمني: الكود (${cleanCode}) هو مجرد مثال توضيحي ومحظور استخدامه للدخول أو التسجيل!\n\nيجب عليك إدخال كود الحجز الفردي الخاص بك الذي استلمته بعد التسجيل في الاستمارة لحضور السيشن.`
+      };
+    }
 
     // التحقق من الصيغة المعتمدة لأكواد الحجز (AIM-)
     if (!cleanCode.startsWith('AIM-') || cleanCode.length < 8) {
@@ -267,98 +381,154 @@ const AIMAuth = (() => {
     const currentDeviceId = getDeviceId();
     const currentDeviceName = getDeviceFriendlyName();
     let db = getCodesDB();
+    const nowISO = new Date().toISOString();
 
-    let codeIndex = db.findIndex(c => c.code === cleanCode);
-
-    // إذا كان الكود جديداً بالصيغة المعتمدة للحجز (من الاستمارة أو كود مخصص)
-    if (codeIndex === -1) {
-      const newRecord = {
-        code: cleanCode,
-        studentName: optionalStudentName.trim() || 'طالب معتمد',
-        status: 'active',
-        boundDeviceId: null,
-        boundDeviceName: null,
-        boundAt: null,
-        createdAt: new Date().toISOString(),
-        notes: 'كود حجز معتمد تم تسجيله عبر المنصة'
-      };
-      db.push(newRecord);
-      saveCodesDB(db);
-      codeIndex = db.length - 1;
-    }
-
-    const record = db[codeIndex];
-
-    // فحص ما إذا كان الكود موقوفاً يدوياً من الإدارة
-    if (record.status === 'blocked' || record.status === 'inactive') {
-      const waText = encodeURIComponent(`مرحباً م. أمير عادل، كود الحجز الخاص بي #${cleanCode} تم إيقافه، أرجو المساعدة في تفعيله.`);
-      return {
-        success: false,
-        errorType: 'CODE_BLOCKED',
-        code: cleanCode,
-        whatsappUrl: `https://wa.me/${ORGANIZER_WHATSAPP}?text=${waText}`,
-        message: `⏳ كود الحجز (${cleanCode}) غير مفعل حالياً!\n\n` +
-                 `يرجى التواصل مع المهندس أمير عادل لتأكيد التفعيل.`
-      };
-    }
-
-    // ==========================================
-    // قفل الجهاز: منع أي جهاز ثانٍ من الدخول بنفس الكود
-    // ==========================================
-    if (record.boundDeviceId && record.boundDeviceId !== currentDeviceId) {
+    // ----------------------------------------------------
+    // الخطوة 1: فحص قاعدة البيانات المحلية للجهاز
+    // ----------------------------------------------------
+    let localRecord = db.find(c => c.code === cleanCode);
+    if (localRecord && localRecord.boundDeviceId && localRecord.boundDeviceId !== currentDeviceId) {
+      const waMsg = encodeURIComponent(`مرحباً أ. رنا (مسؤولة الـ HR)، كود الحجز الخاص بي #${cleanCode} يظهر أنه مقفل بالفعل على جهاز آخر [${localRecord.boundDeviceName}]. أرجو المساعدة في التحقق من هويتي وفك القفل.`);
       return {
         success: false,
         errorType: 'LOCKED_TO_OTHER_DEVICE',
         code: cleanCode,
-        boundDeviceId: record.boundDeviceId,
-        boundDeviceName: record.boundDeviceName || 'جهاز مسجل',
-        boundAt: record.boundAt,
-        studentName: record.studentName,
-        message: `⛔ تنبيه أمني: كود الحجز (${cleanCode}) مسجل ومقفل بالفعل على جهاز آخر!\n` +
-                 `الجهاز المقيد عليه: ${record.boundDeviceName || 'جهاز مسجل'} [${record.boundDeviceId}].\n\n` +
-                 `نظام الحماية يمنع تسجيل الدخول بنفس الكود من جهاز ثانٍ لحماية خصوصية المحتوى.\n` +
-                 `إذا قمت بتغيير جهازك، يرجى التواصل مع المهندس أمير عادل لفك قفل الكود القديم.`
+        boundDeviceId: localRecord.boundDeviceId,
+        boundDeviceName: localRecord.boundDeviceName || 'جهاز مسجل',
+        boundAt: localRecord.boundAt,
+        studentName: localRecord.studentName,
+        whatsappUrl: `https://wa.me/${HR_WHATSAPP}?text=${waMsg}`,
+        message: `⛔ تنبيه أمني مشدد: كود الحجز (${cleanCode}) مسجل ومقفل بالفعل على جهاز آخر!\n\n` +
+                 `📱 الجهاز المقيد عليه: [${localRecord.boundDeviceName || 'جهاز آخر'}].\n` +
+                 `🕒 توقيت التسجيل والقفل: ${localRecord.boundAt ? new Date(localRecord.boundAt).toLocaleString('ar-EG') : 'سابقاً'}.\n\n` +
+                 `🔒 نظام الحماية يمنع تسجيل الدخول بنفس الكود من جهاز ثانٍ نهائياً لمنع مشاركة الحسابات.\n` +
+                 `إذا قمت بتغيير جهازك، يرجى التواصل مباشرة مع أ. رنا (مسؤولة الـ HR) للتحقق وإعادة التعيين.`
       };
     }
 
-    // ==========================================
-    // الكود متاح ومؤكد: قفله على هذا الجهاز وتفعيل الجلسة فوراً
-    // ==========================================
-    const nowISO = new Date().toISOString();
-    const finalStudentName = optionalStudentName.trim() || record.studentName || 'طالب معتمد';
+    // ----------------------------------------------------
+    // الخطوة 2: فحص السجل السحابي العالمي المباشر (Cross-Device Cloud Shield)
+    // ----------------------------------------------------
+    const cloudLocks = await fetchCloudLocks();
+    if (cloudLocks && cloudLocks[cleanCode]) {
+      const cloudLock = cloudLocks[cleanCode];
+      // إذا كان الكود مقيداً مسبقاً على جهاز آخر في أي مكان في العالم:
+      if (cloudLock.boundDeviceId && cloudLock.boundDeviceId !== currentDeviceId) {
+        // تحديث وتأمين السجل المحلي ليمنع هذا الجهاز فوراً حتى لو كان أوفلاين
+        if (localRecord) {
+          localRecord.boundDeviceId = cloudLock.boundDeviceId;
+          localRecord.boundDeviceName = cloudLock.boundDeviceName;
+          localRecord.boundAt = cloudLock.boundAt;
+          saveCodesDB(db);
+        } else {
+          db.push({
+            code: cleanCode,
+            studentName: cloudLock.studentName || 'طالب مسجل',
+            status: 'active',
+            boundDeviceId: cloudLock.boundDeviceId,
+            boundDeviceName: cloudLock.boundDeviceName,
+            boundAt: cloudLock.boundAt,
+            createdAt: cloudLock.boundAt || nowISO,
+            notes: 'تمت المزامنة من السجل السحابي (مقفل على جهاز آخر)'
+          });
+          saveCodesDB(db);
+        }
 
-    record.boundDeviceId = currentDeviceId;
-    record.boundDeviceName = currentDeviceName;
-    record.boundAt = record.boundAt || nowISO;
-    record.lastLoginAt = nowISO;
-    if (optionalStudentName.trim()) {
-      record.studentName = finalStudentName;
+        const boundDevName = cloudLock.boundDeviceName || 'جهاز مسجل';
+        const boundTimeStr = cloudLock.boundAt ? new Date(cloudLock.boundAt).toLocaleString('ar-EG') : 'سابقاً';
+        const waMsg = encodeURIComponent(`مرحباً أ. رنا (مسؤولة الـ HR)، كود الحجز الخاص بي #${cleanCode} يظهر أنه مقفل بالفعل على جهاز آخر [${boundDevName}]. أرجو المساعدة في التحقق من هويتي وفك القفل.`);
+
+        return {
+          success: false,
+          errorType: 'LOCKED_TO_OTHER_DEVICE',
+          code: cleanCode,
+          boundDeviceId: cloudLock.boundDeviceId,
+          boundDeviceName: boundDevName,
+          boundAt: cloudLock.boundAt,
+          studentName: cloudLock.studentName,
+          whatsappUrl: `https://wa.me/${HR_WHATSAPP}?text=${waMsg}`,
+          message: `⛔ تنبيه أمني مشدد: كود الحجز (${cleanCode}) مسجل ومقفل بالفعل على جهاز آخر!\n\n` +
+                   `📱 الجهاز المقيد عليه: [${boundDevName}].\n` +
+                   `🕒 توقيت التسجيل والقفل: ${boundTimeStr}.\n\n` +
+                   `🔒 نظام الحماية يمنع تسجيل الدخول بنفس الكود من جهاز ثانٍ نهائياً لمنع مشاركة الحسابات.\n` +
+                   `إذا قمت بتغيير جهازك، يرجى التواصل مباشرة مع أ. رنا (مسؤولة الـ HR) للتحقق وإعادة التعيين.`
+        };
+      }
     }
-    record.status = 'active';
 
-    db[codeIndex] = record;
+    // فحص ما إذا كان الكود موقوفاً يدوياً من الإدارة
+    if (localRecord && (localRecord.status === 'blocked' || localRecord.status === 'inactive')) {
+      const waText = encodeURIComponent(`مرحباً أ. رنا (مسؤولة الـ HR)، كود الحجز الخاص بي #${cleanCode} تم إيقافه، أرجو المساعدة في تفعيله.`);
+      return {
+        success: false,
+        errorType: 'CODE_BLOCKED',
+        code: cleanCode,
+        whatsappUrl: `https://wa.me/${HR_WHATSAPP}?text=${waText}`,
+        message: `⏳ كود الحجز (${cleanCode}) غير مفعل حالياً!\n\n` +
+                 `يرجى التواصل مباشرة مع أ. رنا (مسؤولة الـ HR) لتأكيد التفعيل.`
+      };
+    }
+
+    // ----------------------------------------------------
+    // الخطوة 3: الكود متاح وصحيح: قفل الكود فوراً وتثبيته على هذا الجهاز محلياً وسحابياً
+    // ----------------------------------------------------
+    const finalStudentName = optionalStudentName.trim() || 
+                             (localRecord ? localRecord.studentName : '') || 
+                             (cloudLocks && cloudLocks[cleanCode] ? cloudLocks[cleanCode].studentName : '') || 
+                             'طالب معتمد';
+
+    let codeIndex = db.findIndex(c => c.code === cleanCode);
+    if (codeIndex === -1) {
+      localRecord = {
+        code: cleanCode,
+        studentName: finalStudentName,
+        status: 'active',
+        boundDeviceId: currentDeviceId,
+        boundDeviceName: currentDeviceName,
+        boundAt: nowISO,
+        createdAt: nowISO,
+        notes: 'كود حجز معتمد تم قفله وتأمينه'
+      };
+      db.push(localRecord);
+    } else {
+      localRecord = db[codeIndex];
+      localRecord.boundDeviceId = currentDeviceId;
+      localRecord.boundDeviceName = currentDeviceName;
+      localRecord.boundAt = localRecord.boundAt || nowISO;
+      localRecord.status = 'active';
+      if (optionalStudentName.trim()) localRecord.studentName = finalStudentName;
+      db[codeIndex] = localRecord;
+    }
     saveCodesDB(db);
 
+    // رفع القفل للسحابة فوراً لمنع أي جهاز آخر في العالم من استخدام الكود
+    const lockPayload = {
+      boundDeviceId: currentDeviceId,
+      boundDeviceName: currentDeviceName,
+      boundAt: localRecord.boundAt || nowISO,
+      studentName: finalStudentName
+    };
+    commitCloudLock(cleanCode, lockPayload);
+
+    // إنشاء الجلسة النشطة
     const sessionData = {
       code: cleanCode,
-      studentName: record.studentName || 'طالب معتمد',
-      phone: record.phone || '',
-      university: record.university || '',
+      studentName: finalStudentName,
       deviceId: currentDeviceId,
       deviceName: currentDeviceName,
-      boundAt: record.boundAt,
+      boundAt: localRecord.boundAt || nowISO,
       loginAt: nowISO
     };
     localStorage.setItem(STORAGE_KEYS.ACTIVE_SESSION, JSON.stringify(sessionData));
 
-    const hrUrl = getHRWhatsAppUrl(sessionData.studentName, cleanCode, currentDeviceId);
+    const hrUrl = getHRWhatsAppUrl(finalStudentName, cleanCode, currentDeviceId);
 
     return {
       success: true,
       code: cleanCode,
       session: sessionData,
       hrWhatsAppUrl: hrUrl,
-      message: `🎉 تم التحقق بنجاح! تم تسجيل كود الحجز (${cleanCode}) وتأمينه وقفله على جهازك الحالي.`
+      message: `🎉 تم التحقق بنجاح! تم تسجيل كود الحجز (${cleanCode}) وقفله وتأمينه نهائياً على هذا الجهاز.`
     };
   }
 
@@ -414,6 +584,10 @@ const AIMAuth = (() => {
     const parsed = parseWhatsAppMessage(messageText);
     if (!parsed) return { success: false, message: 'لم يتم العثور على صيغة كود AIM بالرسالة.' };
 
+    if (isForbiddenExampleCode(parsed.code)) {
+      return { success: false, message: `⛔ تنبيه: الكود (${parsed.code}) هو مجرد كود تجريبي توضيحي ومحظور تفعيله أو استخدامه!` };
+    }
+
     const db = getCodesDB();
     let record = db.find(c => c.code === parsed.code);
 
@@ -445,7 +619,7 @@ const AIMAuth = (() => {
   }
 
   // فك قفل الجهاز لكود معين
-  function adminUnbindCode(code) {
+  async function adminUnbindCode(code) {
     const db = getCodesDB();
     const clean = normalizeCode(code);
     const item = db.find(c => c.code === clean);
@@ -457,17 +631,21 @@ const AIMAuth = (() => {
     item.notes = (item.notes || '') + ' [تم فك قفل الجهاز بواسطة الإدارة]';
     saveCodesDB(db);
 
+    await removeCloudLock(clean);
+
     const active = getActiveSession();
     if (active && active.code === clean) logout();
     return true;
   }
 
   // حذف كود
-  function adminDeleteCode(code) {
+  async function adminDeleteCode(code) {
     let db = getCodesDB();
     const clean = normalizeCode(code);
     db = db.filter(c => c.code !== clean);
     saveCodesDB(db);
+
+    await removeCloudLock(clean);
 
     const active = getActiveSession();
     if (active && active.code === clean) logout();
@@ -565,7 +743,8 @@ const AIMAuth = (() => {
     simulateSecondDevice,
     isSimulatingSecondDevice,
     getCompletedTopics,
-    toggleTopicCompleted,
+    isForbiddenExampleCode,
+    FORBIDDEN_EXAMPLE_CODES,
     ORGANIZER_WHATSAPP,
     OFFICIAL_FORM_URL
   };
