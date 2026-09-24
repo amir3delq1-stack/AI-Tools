@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>أكاديمية الذكاء الاصطناعي التأسيسية | مادة AIM الشاملة - POWERED BY AMIR ADEL</title>
+  <meta name="description" content="المادة التأسيسية الشاملة في الذكاء الاصطناعي وسوق العمل - كود الحجز وقفل الجهاز AIM - المهندس أمير عادل">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/jpeg" href="assets/ae_logo.jpg">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Outfit:wght@300;400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Custom Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/material.css">
+
+  <!-- HTML2Canvas for high-res certificate download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+  <!-- Ambient Glowing Background Orbs -->
+  <div class="ambient-glow top-left"></div>
+  <div class="ambient-glow bottom-right"></div>
+
+  <!-- ===================================================
+       1. SECURITY LOCK OVERLAY (AIM ACCESS & DEVICE LOCK)
+       =================================================== -->
+  <div class="aim-lock-overlay" id="aimLockOverlay">
+    <div class="aim-terminal-card">
+      <div class="aim-terminal-icon-wrap">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+
+      <h2 class="aim-terminal-title">بوابة مادة الذكاء الاصطناعي</h2>
+      <p class="aim-terminal-subtitle">
+        المحتوى محمي بنظام الحجز المشفر <strong>AIM</strong>. يُشترط إدخال كود الحجز المعتمد الخاص بك، وسيتم قفل وتأمين الكود تلقائياً على هذا الجهاز لمنع استخدامه من أي جهاز آخر.
+      </p>
+
+      <!-- Device Hardware Fingerprint Banner -->
+      <div class="aim-device-info-banner">
+        <div class="device-col">
+          <i class="fa-solid fa-laptop-code"></i>
+          <div>
+            <strong id="curDevNameDisplay">جهازك الحالي</strong>
+            <span id="curDevIdDisplay">DEV-HW-SCANNING...</span>
+          </div>
+        </div>
+        <div class="aim-device-status-badge">
+          <i class="fa-solid fa-fingerprint"></i>
+          <span>بصمة جهاز نشطة</span>
+        </div>
+      </div>
+
+      <!-- AIM Input Form -->
+      <div class="aim-input-group">
+        <label class="aim-input-label" for="aimCodeInput">
+          كود الحجز المعتمد الخاص بك:
+          <span style="font-size: 0.76rem; color: var(--neon-cyan);">(مثال: #AIM-MUFF2V23)</span>
+        </label>
+        <div class="aim-input-wrapper">
+          <i class="fa-solid fa-key prefix-icon"></i>
+          <input 
+            type="text" 
+            id="aimCodeInput" 
+            class="aim-code-input" 
+            placeholder="#AIM-XXXXXXXX" 
+            maxlength="25"
+            autocomplete="off"
+            spellcheck="false"
+          >
+        </div>
+      </div>
+
+      <button id="btnVerifyCode" class="aim-btn-verify">
+        <i class="fa-solid fa-lock-open"></i>
+        <span>تأكيد الكود والدخول للمادة (قفل وتأمين الجهاز)</span>
+      </button>
+
+      <!-- Feedback Alert Box -->
+      <div id="aimFeedbackBox" class="aim-feedback-box"></div>
+
+      <!-- Dedicated Session Notice -->
+      <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px 14px; margin-top: 16px; font-size: 0.82rem; color: var(--text-muted); text-align: right; line-height: 1.6;">
+        <i class="fa-solid fa-circle-info" style="color: var(--neon-cyan); margin-left: 6px;"></i>
+        <strong>ملاحظة هامة:</strong> الدخول متاح حصرياً للطلاب المسجلين لحضور السيشن والذين تم تأكيد وتفعيل كود حجزهم. سيتم قفل الكود تلقائياً على هذا الجهاز لضمان عدم استخدامه من أي جهاز آخر.
+      </div>
+
+      <!-- Registration Closed Notice -->
+      <div class="aim-reg-closed-badge">
+        <i class="fa-solid fa-lock" style="color: #f59e0b;"></i>
+        <span>تم قفل باب التسجيل واكتمال العدد المخصص للسيشن</span>
+      </div>
+
+      <!-- Contact Link -->
+      <div style="margin-top: 18px; font-size: 0.85rem; color: var(--text-dim);">
+        سجلت ولم يتم تفعيل كودك؟ 
+        <a href="https://wa.me/201098021457" target="_blank" rel="noopener noreferrer" style="color: #25d366; font-weight: 700;">
+          <i class="fa-brands fa-whatsapp"></i> تواصل مع م. أمير عادل لتأكيد التفعيل
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================
+       2. TOP BAR & USER SESSION NAVIGATION
+       =================================================== -->
+  <nav class="material-nav-top">
+    <div class="container material-nav-row">
+      
+      <!-- Brand & Back Button -->
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <a href="index.html" class="nav-back-btn" title="العودة لدليل الأدوات">
+          <i class="fa-solid fa-arrow-right"></i>
+          <span>دليل الأدوات</span>
+        </a>
+
+        <a href="index.html" class="brand-wrapper" style="text-decoration: none;">
+          <div class="brand-logo-frame" style="width: 40px; height: 40px;">
+            <img src="assets/ae_logo.jpg" alt="AE Logo - Amir Adel">
+          </div>
+          <div class="brand-text">
+            <span class="brand-title" style="font-size: 1.05rem;">AI MASTERY ACADEMY <i class="fa-solid fa-graduation-cap" style="color: var(--neon-cyan);"></i></span>
+            <span class="brand-powered" style="font-size: 0.65rem;">POWERED BY AMIR ADEL</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Active User & Device Lock Status -->
+      <div class="material-user-badge-bar">
+        <div class="user-status-pill">
+          <span class="status-dot"></span>
+          <span>الكود: <strong id="navActiveCode">AIM-XXXX</strong></span>
+          <span style="opacity: 0.4;">|</span>
+          <span id="navActiveStudent">طالب معتمد</span>
+        </div>
+
+        <!-- Admin Portal Trigger Button -->
+        <button id="btnNavAdmin" class="nav-admin-btn" title="لوحة إدارة الأكواد (أمير عادل)">
+          <i class="fa-solid fa-user-shield"></i>
+          <span>لوحة الإدارة</span>
+        </button>
+
+        <!-- Logout Button -->
+        <button id="btnNavLogout" class="nav-logout-btn" title="تسجيل الخروج">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>خروج</span>
+        </button>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- ===================================================
+       3. HERO SECTION & FOUNDATIONS MANIFESTO
+       =================================================== -->
+  <section class="material-hero">
+    <div class="container">
+      
+      <div class="material-hero-badge">
+        <span class="pulse-dot"></span>
+        <span>المادة التأسيسية الشاملة في الذكاء الاصطناعي 2026 • معتمدة بكود AIM</span>
+      </div>
+
+      <h1 class="material-hero-title">
+        البوصلة الشاملة لأساسيات <span class="gradient-text">الذكاء الاصطناعي</span>
+      </h1>
+
+      <!-- The User's Exact Foundations Manifesto -->
+      <div class="material-manifesto-box">
+        <div class="manifesto-quote-icon">
+          <i class="fa-solid fa-quote-right"></i>
+        </div>
+        <p>
+          الذكاء الاصطناعي بقى من أهم المهارات اللي لازم أي شخص يفهم أساسياتها، سواء كنت طالب أو مبرمج أو صاحب مشروع أو بتجهز نفسك لسوق العمل.
+        </p>
+        <p>
+          في المادة دي هنتعرف على الذكاء الاصطناعي من البداية بشكل مبسط ومنظم، بداية من مفهوم <strong>AI</strong> والفرق بينه وبين <strong>Machine Learning</strong> و<strong>Deep Learning</strong>، وبعد كده هننتقل إلى <strong>Generative AI</strong> و<strong>LLMs</strong> و<strong>Prompt Engineering</strong> و<strong>AI Tools</strong>، ثم <strong>RAG</strong> و<strong>Embeddings</strong> و<strong>Vector Databases</strong> و<strong>Fine Tuning</strong> و<strong>Tool Calling</strong>، لحد ما نوصل إلى <strong>AI Agents</strong> و<strong>Agentic AI</strong> وطرق بناء أنظمة ذكاء اصطناعي متكاملة.
+        </p>
+        <p>
+          الهدف من المادة مش مجرد معرفة المصطلحات، لكن فهم الصورة الكاملة للذكاء الاصطناعي ومعرفة إزاي تستخدمه بشكل عملي وتستفيد منه في الدراسة والشغل والبرمجة وصناعة المحتوى والمشروعات وسوق العمل.
+        </p>
+        <p>
+          ✨ المادة شاملة أهم المفاهيم والتقنيات والأدوات الحديثة في مجال الذكاء الاصطناعي، ومناسبة للمبتدئين وكل شخص عايز يبدأ طريقه في المجال بشكل صحيح.
+        </p>
+      </div>
+
+      <!-- Live Learning Progress Bar -->
+      <div class="material-progress-strip">
+        <div class="progress-info-col">
+          <i class="fa-solid fa-bars-progress" style="font-size: 1.5rem; color: var(--neon-cyan);"></i>
+          <div>
+            <div class="progress-title">معدل استيعاب وإنجاز المادة:</div>
+            <div class="progress-stats" id="progressText">0 من 40 مفهوم</div>
+          </div>
+        </div>
+
+        <div class="progress-track-wrapper">
+          <div class="progress-track-fill" id="progressFill"></div>
+        </div>
+
+        <div class="progress-percent-badge" id="progressPercent">0%</div>
+
+        <button id="btnOpenCert" class="btn-cert-unlock">
+          <i class="fa-solid fa-award"></i>
+          <span>شهادة الإتمام</span>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================================================
+       4. TRACKS, FILTERS & LIVE SEARCH CONTROLS
+       =================================================== -->
+  <section class="material-controls-section">
+    <div class="container">
+      
+      <!-- Track Filter Pills (6 Educational Tracks + All) -->
+      <div class="material-tracks-pills" id="tracksPillsContainer">
+        <!-- Rendered dynamically via material-app.js -->
+      </div>
+
+      <!-- Search & Level Bar -->
+      <div class="material-search-bar">
+        <div class="mat-search-box">
+          <i class="fa-solid fa-magnifying-glass search-ico"></i>
+          <input 
+            type="text" 
+            id="matSearchInput" 
+            class="mat-search-input" 
+            placeholder="ابحث في المفاهيم (مثال: RAG, تعلم الآلة, Prompt, Agents, Vector DB)..." 
+            autocomplete="off"
+          >
+          <button id="matSearchClear" class="mat-search-clear" title="مسح">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="level-filters-group">
+          <button class="level-filter-btn active" data-level="all">كل المستويات</button>
+          <button class="level-filter-btn" data-level="مبتدئ">مبتدئ</button>
+          <button class="level-filter-btn" data-level="متوسط">متوسط</button>
+          <button class="level-filter-btn" data-level="متقدم">متقدم</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================================================
+       5. CONCEPTS GRID (40 RICH AI FOUNDATION CONCEPTS)
+       =================================================== -->
+  <main class="container">
+    <div class="concepts-grid" id="conceptsGrid">
+      <!-- Rendered dynamically via material-app.js -->
+    </div>
+
+    <!-- ===================================================
+         6. INTERACTIVE KNOWLEDGE CHECK / QUIZ
+         =================================================== -->
+    <section class="quiz-section" id="quizSection">
+      <div class="quiz-header">
+        <span class="concept-track-tag" style="margin-bottom: 8px; display: inline-block;">KNOWLEDGE CHECK</span>
+        <h2>اختبار تثبيت وتأكيد المفاهيم</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+          اختبر استيعابك للمفاهيم الأساسية واكتشف عمق فهمك لتقنيات وتطبيقات الذكاء الاصطناعي.
+        </p>
+      </div>
+
+      <div id="quizQuestionsList">
+        <!-- Rendered dynamically via material-app.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================================================
+       7. OFFICIAL CERTIFICATE OF ACHIEVEMENT MODAL
+       =================================================== -->
+  <!-- ===================================================
+       7. OFFICIAL CERTIFICATE OF ACHIEVEMENT MODAL
+       =================================================== -->
+  <div class="cert-modal-overlay hidden" id="certModal">
+    <div class="cert-frame-wrapper">
+      <button class="cert-close-btn" id="btnCloseCert" title="إغلاق">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Mandatory Name Input Bar -->
+      <div class="cert-name-input-bar">
+        <label for="certDynamicNameInput" class="cert-name-label">
+          <i class="fa-solid fa-user-pen"></i>
+          <span>اسم الطالب المعتمد بالشهادة (إجباري لإصدار وتحميل الشهادة):</span>
+        </label>
+        <div class="cert-name-input-row">
+          <input 
+            type="text" 
+            id="certDynamicNameInput" 
+            class="cert-name-field" 
+            placeholder="اكتب اسمك ثلاثياً بالكامل هنا لاعتماده بالشهادة..." 
+            maxlength="60"
+            required
+          >
+          <button type="button" id="btnApplyCertName" class="btn-cert-name-apply">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>تثبيت الاسم على الشهادة</span>
+          </button>
+        </div>
+        <div id="certNameErrorMsg" class="cert-name-error-msg">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>تنبيه: يجب كتابة اسمك ثلاثياً بالكامل (3 حروف على الأقل) لإصدار وتحميل الشهادة!</span>
+        </div>
+      </div>
+
+      <!-- Printable Certificate Card -->
+      <div class="official-certificate" id="printableCertificate">
+        <div class="cert-watermark">AI MASTERY</div>
+
+        <!-- Dual Logo Header -->
+        <div class="cert-dual-logo-row">
+          <img src="assets/ai_mastery_badge.jpg" alt="AI Mastery Official Emblem" class="cert-dual-logo badge-gold" title="AI Mastery Academy">
+          <div class="cert-header-center">
+            <div class="cert-academy-title">AI NEXUS ELITE • AI MASTERY ACADEMY</div>
+            <h2 class="cert-main-heading">شهادة إتمام واجتياز دورة الذكاء الاصطناعي</h2>
+            <div class="cert-sub-heading">CERTIFICATE OF ARTIFICIAL INTELLIGENCE MASTERY</div>
+          </div>
+          <img src="assets/ae_seal.jpg" alt="Amir Adel Eid Official Seal" class="cert-dual-logo seal-cyan" title="Amir Adel Eid - AI Engineer">
+        </div>
+
+        <p class="cert-awarded-text">
+          نشهد بأن المتدرب / الطالب:
+        </p>
+
+        <div class="cert-student-name" id="certStudentName">أحمد محمد</div>
+
+        <p class="cert-description">
+          قد اجتاز بنجاح واقتدار كافة محاور وتطبيقات <strong>دورة أساسيات وتطبيقات الذكاء الاصطناعي (AI Mastery Course)</strong>، واستوفى بنجاح متطلبات دراسة وتطبيق مفاهيم الذكاء الاصطناعي، وتعلم الآلة (Machine Learning)، والتعلم العميق (Deep Learning)، والذكاء الاصطناعي التوليدي (Generative AI & LLMs)، وهندسة الأوامر (Prompt Engineering)، وتقنيات الـ RAG وقواعد البيانات الموجهة (Vector DBs)، وبناء وكلاء الذكاء الاصطناعي (AI Agents)، وأتمتة الأعمال وسير العمل لسوق العمل.
+        </p>
+
+        <div class="cert-details-grid">
+          <div class="cert-detail-item">
+            <span class="lbl">كود الحجز المعتمد:</span>
+            <strong id="certCode" style="color: var(--neon-cyan);">AIM-MUFF2V23</strong>
+          </div>
+          <div class="cert-detail-item">
+            <span class="lbl">تاريخ الاعتماد والإصدار:</span>
+            <strong id="certIssueDate" style="color: #fbbf24;">25 سبتمبر 2026</strong>
+          </div>
+          <div class="cert-detail-item">
+            <span class="lbl">رمز التحقق الأمني الرقمي:</span>
+            <strong id="certVerifyHash" style="color: var(--neon-emerald);">VERIFIED-AIM-2026</strong>
+          </div>
+        </div>
+
+        <div class="cert-footer-row">
+          <div class="cert-signature-col">
+            <div class="cert-signature-name">Amir Adel Eid</div>
+            <div class="cert-signature-role">AI Engineer & Creative Technologist</div>
+            <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">مدرب الدورة ومؤسس AI Nexus Elite</div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div class="cert-seal-badge" style="width: 80px; height: 80px; border-color: var(--neon-cyan); background: rgba(0, 229, 255, 0.05); color: var(--neon-cyan);">
+              <i class="fa-solid fa-award" style="font-size: 1.5rem; margin-bottom: 2px;"></i>
+              <span style="font-size: 0.65rem;">VERIFIED</span>
+              <span style="font-size: 0.55rem; color: #fff;">COURSE PASS</span>
+            </div>
+            <img src="assets/ae_seal.jpg" alt="Official AE Seal" style="width: 65px; height: 65px; border-radius: 50%; border: 2px solid var(--neon-cyan);">
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons (Download, Print, Send to Ms. Rana) -->
+      <div class="cert-actions-bar">
+        <button class="btn-cert-download" id="btnDownloadCertImage" type="button">
+          <i class="fa-solid fa-file-arrow-down"></i>
+          <span>تحميل الشهادة كصورة (PNG)</span>
+        </button>
+        <button class="btn-cert-print" id="btnPrintCert" type="button">
+          <i class="fa-solid fa-print"></i>
+          <span>طباعة / حفظ PDF</span>
+        </button>
+        <a href="#" id="btnSendCertToHR" target="_blank" rel="noopener noreferrer" class="btn-cert-send-hr">
+          <i class="fa-brands fa-whatsapp"></i>
+          <span>تأكيد واعتماد الشهادة مباشرة مع أ. رنا (مسؤولة الـ HR)</span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================
+       8. ADMIN PORTAL MODAL (AMIR ADEL CONTROL HUB)
+       =================================================== -->
+  <div class="admin-modal-overlay hidden" id="adminModal">
+    <div class="admin-card">
+      <div class="admin-header">
+        <div class="admin-title-col">
+          <h3><i class="fa-solid fa-user-shield"></i> لوحة تحكم وإدارة أكواد AIM - المهندس أمير عادل</h3>
+          <span style="font-size: 0.82rem; color: var(--text-dim);">إدارة حصرية لتوليد أكواد الحجز والتحكم في قفل الأجهزة</span>
+        </div>
+        <button class="cert-close-btn" id="btnCloseAdmin" style="position: static; width: 32px; height: 32px;" title="إغلاق">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="admin-stats-row" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="admin-stat-card">
+          <div class="val" id="adminTotalCodes">0</div>
+          <div class="lbl">إجمالي الأكواد</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="val" id="adminActiveCodes" style="color: var(--neon-emerald);">0</div>
+          <div class="lbl">شغال ومفعل 🟢</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="val" id="adminPendingCodes" style="color: #fbbf24;">0</div>
+          <div class="lbl">مش متفعل 🟡</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="val" id="adminBoundCodes" style="color: #ef4444;">0</div>
+          <div class="lbl">مقفل على جهاز 🔒</div>
+        </div>
+      </div>
+
+      <!-- Quick WhatsApp Message Activator (لصق رسالة الواتساب وتفعيلها فوراً) -->
+      <div class="admin-whatsapp-box">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px; font-weight: 800; color: #25d366; font-size: 0.95rem;">
+            <i class="fa-brands fa-whatsapp fa-lg"></i>
+            <span>تفعيل سريع عبر لصق رسالة الواتساب من الطالب:</span>
+          </div>
+          <a href="https://amir3delq1-stack.github.io/Forum-Ai-Mastrey/" target="_blank" style="font-size: 0.78rem; color: var(--neon-cyan); text-decoration: underline;">
+            فتح استمارة AI Mastery الرسمية
+          </a>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+          عندما يرسل لك الطالب رسالة الحجز عبر واتساب، الصقها بالكامل هنا، وسيقوم النظام فوراً باستخراج الاسم والهاتف وكود #AIM وتفعيله ليدخل به الطالب مباشرة:
+        </p>
+        <textarea id="adminWhatsappPasteText" class="admin-whatsapp-textarea" placeholder="الصق رسالة الواتساب هنا... مثال:
+🚀 *تسجيل جديد في سيشن AI MASTERY*
+👤 *الاسم:* Ahmed
+📱 *رقم الواتساب:* 01098021457
+🎓 *الجامعة / التخصص:* القاهره
+🔖 *كود الحجز:* #AIM-MUFF2V23"></textarea>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button id="btnAdminQuickActivate" class="btn-wa-quick-activate" type="button">
+            <i class="fa-solid fa-bolt"></i>
+            <span>تفعيل كود الطالب فوراً (تحويله لـ شغال ومفعل)</span>
+          </button>
+          <button id="btnAdminExport" class="btn-wa-quick-activate" style="background: rgba(255, 255, 255, 0.1);" type="button">
+            <i class="fa-solid fa-file-csv"></i>
+            <span>تصدير الأكواد CSV</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Codes Registry Table -->
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>كود الحجز (AIM)</th>
+              <th>بيانات الطالب</th>
+              <th>حالة التفعيل</th>
+              <th>الجهاز المربوط به</th>
+              <th>إجراءات الإدارة</th>
+            </tr>
+          </thead>
+          <tbody id="adminCodesTableBody">
+            <!-- Rendered dynamically via material-app.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Developer Testing Tool inside Admin Hub -->
+      <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 0.8rem; color: var(--text-dim);"><i class="fa-solid fa-flask"></i> أداة فحص خاصة بم. أمير عادل:</span>
+        <button id="btnSimulateDevice" class="btn-wa-quick-activate" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; font-size: 0.8rem; padding: 6px 14px; margin-top: 0;" type="button">
+          <i class="fa-solid fa-mobile-screen-button"></i>
+          <span>محاكاة جهاز ثانٍ (لفحص قفل الأجهزة)</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================
+       9. FOOTER
+       =================================================== -->
+  <footer class="footer" style="margin-top: 80px;">
+    <div class="container">
+      <div class="footer-powered-box">
+        <a href="https://www.facebook.com/share/1DrBWyxSNC/" target="_blank" rel="noopener noreferrer" class="footer-powered-link" title="زيارة صفحة المهندس أمير عادل الموثقة">
+          <img src="assets/ae_logo.jpg" alt="AE Logo" class="footer-logo-img">
+          <span class="footer-powered-text">POWERED BY <span>AMIR ADEL</span></span>
+          <span class="verified-badge" title="حساب رسمي موثق"><i class="fa-solid fa-check"></i></span>
+        </a>
+      </div>
+
+      <div class="footer-social-icons">
+        <a href="https://www.facebook.com/share/1DrBWyxSNC/" target="_blank" rel="noopener noreferrer" class="footer-icon-btn" title="Facebook Profile">
+          <i class="fa-brands fa-facebook-f"></i>
+        </a>
+        <a href="https://www.instagram.com/amir_adel_eid?stkn=dWM1cDFqN3FiMmFq" target="_blank" rel="noopener noreferrer" class="footer-icon-btn" title="Instagram Profile">
+          <i class="fa-brands fa-instagram"></i>
+        </a>
+        <a href="index.html" class="footer-icon-btn" title="AI Nexus Tools">
+          <i class="fa-solid fa-compass"></i>
+        </a>
+      </div>
+
+      <p class="footer-copyright">
+        جميع الحقوق محفوظة &copy; 2026 | أكاديمية الذكاء الاصطناعي - تصميم وتطوير المهندس <strong>أمير عادل (Amir Adel Eid)</strong> - AI Engineer & Creative Technologist.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/aim-auth.js"></script>
+  <script src="js/material-data.js"></script>
+  <script src="js/material-app.js"></script>
+</body>
+</html>
