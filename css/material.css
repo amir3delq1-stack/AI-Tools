@@ -25,6 +25,29 @@
 }
 
 /* ===================================================
+   PROTECTED CONTENT CONTAINER (100% HIDDEN UNTIL AIM LOGIN)
+   =================================================== */
+.aim-protected-content {
+  display: none !important;
+}
+
+.aim-protected-content.unlocked {
+  display: block !important;
+  animation: fadeInMaterial 0.4s ease-out forwards;
+}
+
+@keyframes fadeInMaterial {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===================================================
    LOCK SCREEN & SECURITY GATEWAY (AIM TERMINAL)
    =================================================== */
 .aim-lock-overlay {

@@ -11,8 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let searchQuery = '';
   let activeSession = AIMAuth.getActiveSession();
 
-  // عناصر شاشة القفل والتحقق
+  // عناصر شاشة القفل والتحقق والمحتوى المحمي
   const lockOverlay = document.getElementById('aimLockOverlay');
+  const aimProtectedContent = document.getElementById('aimProtectedContent');
   const aimCodeInput = document.getElementById('aimCodeInput');
   const btnVerifyCode = document.getElementById('btnVerifyCode');
   const aimFeedbackBox = document.getElementById('aimFeedbackBox');
@@ -72,6 +73,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function checkAuthStatus() {
     activeSession = AIMAuth.getActiveSession();
     if (!activeSession) {
+      if (aimProtectedContent) {
+        aimProtectedContent.classList.remove('unlocked');
+        aimProtectedContent.style.display = 'none';
+      }
       lockOverlay.classList.remove('hidden');
       lockOverlay.style.display = 'flex';
       document.body.style.overflow = 'hidden';
@@ -80,6 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       lockOverlay.classList.add('hidden');
       lockOverlay.style.display = 'none';
+      if (aimProtectedContent) {
+        aimProtectedContent.classList.add('unlocked');
+        aimProtectedContent.style.display = 'block';
+      }
       document.body.style.overflow = 'auto';
       document.documentElement.style.overflow = 'auto';
 
@@ -87,8 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (navActiveStudent) navActiveStudent.textContent = activeSession.studentName || 'طالب معتمد';
       if (navActiveDeviceId) navActiveDeviceId.textContent = activeSession.deviceId;
 
-      updateProgressUI();
+      // تحميل وعرض المادة فقط بعد تسجيل الدخول وتأكيد الكود
+      renderTracks();
+      renderQuiz();
       renderConcepts();
+      updateProgressUI();
     }
   }
 
@@ -862,8 +874,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // بدء تشغيل الصفحة
-  renderTracks();
-  renderQuiz();
+  // بدء تشغيل الصفحة بالتحقق الأمني من كود الحجز أولاً
   checkAuthStatus();
 });
